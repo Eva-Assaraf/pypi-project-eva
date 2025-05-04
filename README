@@ -1,0 +1,55 @@
+This project is divided into two main parts, according to the assignment description: **Task 1 (Scraper)** and **Task 2 (Analyzer)**.
+Each part is implemented in a modular way using Python scripts and standard libraries.
+Task 1 – Package Scraper
+Goal: Automatically retrieve the latest version of a PyPI package and extract its metadata and dependencies.
+
+1. User Input:
+   The program starts by asking the user to input the name of a PyPI package.
+
+2. Fetch Version:
+   A GET request is sent to the PyPI JSON API (`https://pypi.org/pypi/<package>/json`) to retrieve the latest available version.
+
+3. Download Archive:
+   The script looks at the list of available files for that version and downloads a `.whl` file if available, or a `.tar.gz` as a fallback.
+
+4. Extract Metadata & Dependencies:
+   The downloaded archive is scanned to find:
+   - `PKG-INFO` or `METADATA` (for name, version, author, description)
+   - `requirements.txt` or `setup.py` to extract dependencies using regex or line parsing.
+
+5. Result:
+   The extracted information is printed to the terminal and can be reused for further analysis.
+
+Task 2 – Malicious Code Analysis
+Goal: Analyze the downloaded package for potential malicious behaviors or suspicious patterns.
+
+1. Extraction:
+   The downloaded archive is extracted to a temporary folder using `tarfile` or `zipfile`, depending on the format.
+
+2. Walk through `.py` files:
+   The program recursively scans all Python files in the extracted folder.
+
+3. Keyword Detection:
+   For each `.py` file, it searches for suspicious functions or patterns (e.g., `eval`, `exec`, `os.system`, `base64`, etc.).
+   If a match is found, it records:
+   - The keyword
+   - The line number
+   - A short context (before/after lines)
+
+4. Risk Scoring:
+   The result is summarized using a simple logic:
+   - **High:** if critical keywords (like `eval`) are found
+   - **Moderate:** if 1–2 non-critical patterns are found
+   - **Safe:** if no known suspicious code is detected
+
+5. Output:
+   The program prints the score and lists all files and keywords found, helping users spot malicious code quickly.
+
+
+
+Design choices
+
+- The code is modular: `downloader.py`, `extractor.py`, and `analyzer.py` are separate and reusable.
+- Only one external dependency is used: `requests`.
+- Logging is implemented to both console and file for better traceability (`package_downloader.log`).
+- The script handles `.tar.gz` and `.whl` formats and avoids crashing on missing files or fields.
