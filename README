@@ -1,4 +1,4 @@
-This project is divided into two main parts, according to the assignment description: **Task 1 (Scraper)** and **Task 2 (Analyzer)**.
+This project is divided into two main parts, according to the assignment description: Task 1 (Scraper) and Task 2 (Analyzer).
 Each part is implemented in a modular way using Python scripts and standard libraries.
 Task 1 – Package Scraper
 Goal: Automatically retrieve the latest version of a PyPI package and extract its metadata and dependencies.
