@@ -1,4 +1,4 @@
-This project is divided into two main parts, according to the assignment description: Task 1 (Scraper) and Task 2 (Analyzer).
+This project is divided into two main parts, according to the assignment description: **Task 1 (Scraper)** and **Task 2 (Analyzer)**.
 Each part is implemented in a modular way using Python scripts and standard libraries.
 Task 1 – Package Scraper
 Goal: Automatically retrieve the latest version of a PyPI package and extract its metadata and dependencies.
@@ -20,36 +20,71 @@ Goal: Automatically retrieve the latest version of a PyPI package and extract it
 5. Result:
    The extracted information is printed to the terminal and can be reused for further analysis.
 
-Task 2 – Malicious Code Analysis
-Goal: Analyze the downloaded package for potential malicious behaviors or suspicious patterns.
+Task 2 – Malicious Code Analysis- Records of findings
+Objective
+The objective of this task was to analyze two software packages in order to determine whether they contain potentially malicious behavior. This involved performing a static analysis of the source code, identifying suspicious programming patterns, and generating a risk assessment for each package.
 
-1. Extraction:
-   The downloaded archive is extracted to a temporary folder using `tarfile` or `zipfile`, depending on the format.
+Two packages were provided for this analysis:
 
-2. Walk through `.py` files:
-   The program recursively scans all Python files in the extracted folder.
+A JavaScript package named colors-dev
 
-3. Keyword Detection:
-   For each `.py` file, it searches for suspicious functions or patterns (e.g., `eval`, `exec`, `os.system`, `base64`, etc.).
-   If a match is found, it records:
-   - The keyword
-   - The line number
-   - A short context (before/after lines)
+A Python package named typing_unions
 
-4. Risk Scoring:
-   The result is summarized using a simple logic:
-   - **High:** if critical keywords (like `eval`) are found
-   - **Moderate:** if 1–2 non-critical patterns are found
-   - **Safe:** if no known suspicious code is detected
+The analysis was conducted using a Python-based tool I developed, capable of analyzing both .py and .js files.
 
-5. Output:
-   The program prints the score and lists all files and keywords found, helping users spot malicious code quickly.
+Package Identification
+The JavaScript package was identified based on the content of its package.json file, which explicitly names the package as colors-dev. The structure included files such as extendStringPrototype.js, index.js, rainbow.js, and others. These files revealed that the package modifies how strings behave in the JavaScript runtime environment, suggesting it mimics or extends the functionality of known packages like colors.
 
+The Python package was identified through a complete PyPI-style structure, containing files such as setup.py, PKG-INFO, SOURCES.txt, top_level.txt, typing.py, and others. The SOURCES.txt file indicated that the distribution name was typing_unions, and the top_level.txt file showed that the top-level module is named typing. This strongly suggests that the package is designed to imitate the standard library module typing, which may mislead users—a known example of typosquatting.
 
+Methodology
+The analysis process included the following steps:
 
-Design choices
+Extraction
+If the package was provided as a .tar.gz or .whl archive, it was extracted into a temporary directory. If the files were already in a folder, the folder was used directly.
 
-- The code is modular: `downloader.py`, `extractor.py`, and `analyzer.py` are separate and reusable.
-- Only one external dependency is used: `requests`.
-- Logging is implemented to both console and file for better traceability (`package_downloader.log`).
-- The script handles `.tar.gz` and `.whl` formats and avoids crashing on missing files or fields.
+Static Code Analysis
+The tool recursively scanned all .py and .js files in the directory. Each file was read line by line, and the script searched for suspicious or high-risk keywords, including:
+
+Python: eval, exec, __import__, os.system, pickle, etc.
+
+JavaScript: eval(, Function(, __defineGetter__, child_process, etc.
+
+Reporting
+For every file containing suspicious patterns, the tool generated a structured report including:
+
+File name and type
+
+Detected keywords
+
+Line numbers and surrounding code context
+
+Risk Assessment
+Based on the findings, the tool assigned a risk score:
+
+High – critical keywords (e.g., eval, __defineGetter__)
+
+Moderate – some questionable or potentially unsafe patterns
+
+Safe – no dangerous patterns identified
+
+Analysis of colors-dev (JavaScript)
+This package was found to modify the global String.prototype object using __defineGetter__. This practice is considered unsafe because it silently changes the behavior of all strings in the application, which can cause compatibility issues and security vulnerabilities. The file extendStringPrototype.js injects color-based string methods (e.g., .red, .trap, .zebra) without user awareness.
+
+The script detected the presence of the __defineGetter__ keyword, triggering a High risk classification. Such behavior is consistent with known malicious or disruptive packages.
+
+Analysis of typing_unions (Python)
+The package typing_unions appears to be a backport or replica of the standard typing module. Although the code itself does not contain any suspicious keywords or behavior, the package uses a naming convention and module structure that closely mimic the official typing module.
+
+This is a classic case of typosquatting, in which a malicious or misleading package uses a name similar to a well-known standard or trusted library. The files SOURCES.txt and top_level.txt confirm that the module name is typing and the distribution is typing_unions.
+
+The script assigned a Safe (or potentially Moderate) risk score, not because of the code content, but because of the potential for confusion and misuse due to naming.
+
+Conclusion
+The developed tool successfully performed static analysis of both PyPI-hosted and locally stored packages. It is capable of detecting risky patterns across both Python and JavaScript codebases, and of identifying behavioral anomalies or structural warnings (e.g., typosquatting).
+
+The colors-dev package received a High risk rating due to the use of unsafe and hidden prototype modification in JavaScript.
+
+The typing_unions package was rated as Safe, although the naming strategy represents a security concern in terms of package trust and dependency resolution.
+
+This analysis demonstrates how static code scanning tools can support supply chain security efforts by flagging suspicious packages before they are used in real-world projects.
