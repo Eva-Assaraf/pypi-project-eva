@@ -21,9 +21,12 @@ def extract_to_temp_dir(archive_path):
 
 # Suspicious keywords often found in malicious or risky code
 SUSPICIOUS_KEYWORDS = [
-    "os.system", "subprocess", "eval", "exec", "socket", "ctypes", "base64", "open(",
-    "wget", "requests.get", "input(", "pickle", "marshal", "compile", "globals",
-    "locals", "__import__", "getattr(", "setattr("
+    # Python
+    "os.system", "subprocess", "eval", "exec", "pickle", "marshal", "compile", "globals", "locals", "__import__",
+
+    # JavaScript
+    "eval(", "Function(", "new Function", "child_process", "require(", "__defineGetter__",
+    "fs.", "process.env", "setInterval(", "setTimeout("
 ]
 
 # Scan a Python file line by line to detect suspicious keywords with context
@@ -54,12 +57,13 @@ def analyze_extracted_dir(directory):
     report = []
     for root, _, files in os.walk(directory):
         for file in files:
-            if file.endswith(".py"):
+            if file.endswith(".py") or file.endswith(".js"):
                 full_path = os.path.join(root, file)
                 keywords = scan_file(full_path)
                 if keywords:
                     report.append({
                         "file": full_path,
+                        "type": "JavaScript" if file.endswith(".js") else "Python",
                         "keywords_found": [kw[0] for kw in keywords],
                         "lines": [
                             {"keyword": kw[0], "line": kw[1], "context": kw[2]}
@@ -86,10 +90,10 @@ def generate_risk_score(report):
 
 # Full analysis function that extracts the package, scans for issues, and assigns a score
 def analyze_package(archive_path):
-    extracted_dir = extract_to_temp_dir(archive_path)
-    if not extracted_dir:
-        return None
-
+    if os.path.isdir(archive_path):
+        extracted_dir = archive_path  #files
+    else:
+        extracted_dir = extract_to_temp_dir(archive_path)
     scan_report = analyze_extracted_dir(extracted_dir)
     score = generate_risk_score(scan_report)
 

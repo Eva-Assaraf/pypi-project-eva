@@ -1,13 +1,12 @@
 import requests
 import os
-HTTP_OK = 200
 
 def get_latest_version(package_name):
     # Construct the URL to get the package metadata from PyPI
     url = f"https://pypi.org/pypi/{package_name}/json"
     try:
         response = requests.get(url)
-        if response.status_code == HTTP_OK:
+        if response.status_code == 200:
             # If request is successful, return the latest version
             data = response.json()
             return data["info"]["version"]

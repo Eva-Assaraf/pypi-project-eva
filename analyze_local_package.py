@@ -1,7 +1,7 @@
 from extractor import extract_dependencies
 from analyzer import analyze_package
 
-archive_path =  "pypi-test.tar.gz"
+archive_path = input("Enter the path to your .tar.gz, .whl or directory:\n").strip()
 print(f"Analyzing local package archive: {archive_path}")
 
 # Task 1 (partielle) – Extraction de dépendances et métadonnées
